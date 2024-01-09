@@ -32,10 +32,11 @@ def parse(
         data = [line for line in config.splitlines()]
     else:
         raise ValueError(
-            f'Invalid argument passed to source. Accepted values are "file" or "string"; received: {repr(source)})'
+            f'Invalid argument passed to source. \
+            Accepted values are "file" or "string"; received: {repr(source)})'
         )
-
-    indent = 0
+    #
+    # indent = 0
     prev_indent = 0
     prev_header, prev_key, prev_value = "", "", ""
     multiline = False
