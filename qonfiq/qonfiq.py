@@ -21,9 +21,12 @@ def parse(
     levels = {header: 1}
     assignment_split_pattern = re.compile(r"(?<!\\)" f'(?:{"|".join(delimiters)})')
     header_pattern = re.compile(f"^[{brackets[0]}].+?[{brackets[1]}]$")
+    unescape_pattern = re.compile(r"\\"f"({'|'.join(delimiters)})")
 
     def process_multiline(indict, key, value):
-        indict[key][value] = process_values(indict[key][value].strip())
+        result = process_values(indict[key][value].strip())
+        result = re.sub(unescape_pattern, "\\1", result)
+        indict[key][value] = result
 
     if source == "file":
         with open(config) as f:
@@ -35,8 +38,8 @@ def parse(
             f'Invalid argument passed to source. \
             Accepted values are "file" or "string"; received: {repr(source)})'
         )
-    #
-    # indent = 0
+
+    indent = 0
     prev_indent = 0
     prev_header, prev_key, prev_value = "", "", ""
     multiline = False
@@ -101,6 +104,7 @@ def parse(
                 key = process_keys(key)
                 if value:
                     value = process_values(value)
+                    value = re.sub(unescape_pattern, "\\1", value)
                 result[header][key] = value
 
             prev_indent = indent
