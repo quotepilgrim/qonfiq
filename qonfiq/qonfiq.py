@@ -12,9 +12,9 @@ def parse(
     comment_prefixes=("#", ";"),
     inline_comment_prefixes=("",),
     brackets=(r"\[", r"\]"),
-    process_keys=lambda s: s,
-    process_values=lambda s: s,
-    process_headers=lambda s: s,
+    modify_keys=lambda s: s,
+    modify_values=lambda s: s,
+    modify_headers=lambda s: s,
 ):
     result = {default_section: {}}
     header = default_section
@@ -23,8 +23,8 @@ def parse(
     header_pattern = re.compile(f"^[{brackets[0]}].+?[{brackets[1]}]$")
     unescape_pattern = re.compile(r"\\"f"({'|'.join(delimiters)})")
 
-    def process_multiline(indict, key, value):
-        result = process_values(indict[key][value].strip())
+    def handle_multiline(indict, key, value):
+        result = modify_values(indict[key][value].strip())
         result = re.sub(unescape_pattern, "\\1", result)
         indict[key][value] = result
 
@@ -54,7 +54,7 @@ def parse(
                 header_level += 1
 
             header = line[1:-1].strip("".join(brackets))
-            header = process_headers(header)
+            header = modify_headers(header)
             for key in list(reversed(levels)):
                 if levels[key] < header_level:
                     header = f"{subsection_delimiter}".join(
@@ -95,14 +95,14 @@ def parse(
                 continue
             elif multiline:
                 multiline = False
-                process_multiline(result, prev_header, prev_key)
+                handle_multiline(result, prev_header, prev_key)
 
             if key:
                 prev_key = key
                 prev_value = value or ""
-                key = process_keys(key)
+                key = modify_keys(key)
                 if value:
-                    value = process_values(value)
+                    value = modify_values(value)
                     value = re.sub(unescape_pattern, "\\1", value)
                 result[header][key] = value
 
@@ -110,6 +110,6 @@ def parse(
             prev_header = header
 
     if multiline:
-        process_multiline(result, prev_header, prev_key)
+        handle_multiline(result, prev_header, prev_key)
 
     return result
