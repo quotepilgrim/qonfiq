@@ -83,7 +83,6 @@ def parse(
                 value = None
 
             if key:
-                key = key
                 indent = 0
                 while line[indent].isspace():
                     indent += 1
